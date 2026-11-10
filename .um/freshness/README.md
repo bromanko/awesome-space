@@ -49,8 +49,8 @@ repository. Other sites use their final URL and page hash. Fetching and comparin
 these snapshots needs no model. Changes confined to other source files can be
 missed; cosmetic page changes can trigger extra reviews.
 
-Proposed corrections are checked against prior issues and PRs, then checked for exact patch application and links with Lychee in a disposable checkout. New link failures are
-separated from existing failures; changed destinations must pass. Missing evidence,
+Proposed corrections are checked against prior issues and PRs, then checked for exact patch application and links with Lychee in a disposable checkout. Every URL on a changed entry must pass. Unrelated HTTP(S) failures that vary
+between checks are reported separately; new local or unknown-scheme failures hold edits. Missing evidence,
 uncertainty, incomplete history, failed checks, or a changed catalog hold the edit.
 Checks do not establish factual correctness: maintainers still review the evidence.
 
