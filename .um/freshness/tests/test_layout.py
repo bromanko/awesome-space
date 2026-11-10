@@ -45,3 +45,17 @@ class LayoutTests(unittest.TestCase):
         entry=ci.entries('# Data\n* [Archive](https://example.com)\n')[0]
         self.assertFalse(entry['editable'])
         self.assertEqual(entry['name'],'Archive')
+
+    def test_parent_removal_and_rename_hold_without_detaching_children(self):
+        text='# Tools\n- [Parent](https://example.com) - Parent.\n  - [Child](https://child.example) - Child.\n'
+        entry=ci.entries(text)[0]
+        for row in [dict(action='remove',newName=None,newDescription=None),dict(action='update',newName='Renamed',newDescription=None)]:
+            self.assertIn('nested',ci.layout_blocker(entry,row,text))
+        self.assertIsNone(ci.layout_blocker(entry,dict(action='update',newName=None,newDescription='Corrected.'),text))
+
+    def test_companion_link_cannot_disappear_from_update_or_removal(self):
+        text='# Tools\n* [Tool](https://example.com) - Uses [Companion](https://companion.example).\n'
+        entry=ci.entries(text)[0]
+        self.assertIn('companion',ci.layout_blocker(entry,dict(action='update',newDescription='Replacement.'),text))
+        self.assertIn('companion',ci.layout_blocker(entry,dict(action='remove',newDescription=None),text))
+        self.assertIsNone(ci.layout_blocker(entry,dict(action='update',newDescription='Works with [Companion](https://companion.example).'),text))

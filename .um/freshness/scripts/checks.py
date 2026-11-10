@@ -1,4 +1,4 @@
-"""Validate one-entry patches in disposable copies using the upstream check tools."""
+"""Validate one-entry patches in disposable copies using exact patch checks and the link checker."""
 import io
 import json
 import os
@@ -81,8 +81,7 @@ class Validator:
         return folder
 
     def check(self, folder, label):
-        commands = {'lint':['awesome-lint','README.md'], 'spelling':['typos', *(['--config','typos.toml'] if (folder/'typos.toml').exists() else []), 'README.md'],
-                    'links':['lychee','--verbose','--no-progress','--format','json','--max-retries','0',
+        commands = {'links':['lychee','--verbose','--no-progress','--format','json','--max-retries','0',
                              '--max-concurrency','10','--timeout','10','README.md']}
         results = {key:run(cmd,folder,self.env) for key,cmd in commands.items()}
         log = self.output / 'validation'
@@ -116,8 +115,8 @@ class Validator:
             old_lines = {e['line'] for e in ci.entries(self.readme)}
             relevant = [e['url'] for e in ci.entries(changed) if e['line'] not in old_lines]
             result['links'] = compare_links(before_links,after_links,relevant)
-            result['passed'] = all(after[k]['exitCode']==0 for k in ('lint','spelling')) and result['links']['passed']
-            result['reason'] = ('Checks passed; existing unrelated link failures are listed separately.' if result['passed']
+            result['passed'] = result['links']['passed']
+            result['reason'] = ('Exact patch and link checks passed; unrelated existing link failures are listed separately.' if result['passed']
                                 else 'Proposed edit failed checks; held for maintainer review. See validation logs.')
         except (ValueError,KeyError,TypeError):
             result['reason'] = 'Link validation incomplete; held for maintainer review.'

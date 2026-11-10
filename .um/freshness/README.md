@@ -32,7 +32,7 @@ flowchart TD
   investigateEntries --> collectHistory[Collect prior discussions]
   collectHistory --> reviewHistory[Review discussions for proposed changes]
   reviewHistory --> buildCorrections[Build proposed corrections]
-  buildCorrections --> validateCorrections[Check formatting, spelling and links]
+  buildCorrections --> validateCorrections[Check exact patch and links]
   validateCorrections --> renderPreview[Report, checked patches and proposed baseline]
 ```
 
@@ -49,8 +49,7 @@ repository. Other sites use their final URL and page hash. Fetching and comparin
 these snapshots needs no model. Changes confined to other source files can be
 missed; cosmetic page changes can trigger extra reviews.
 
-Proposed corrections are checked against prior issues and PRs, then validated with
-awesome-lint, typos, and Lychee in a disposable checkout. New link failures are
+Proposed corrections are checked against prior issues and PRs, then checked for exact patch application and links with Lychee in a disposable checkout. New link failures are
 separated from existing failures; changed destinations must pass. Missing evidence,
 uncertainty, incomplete history, failed checks, or a changed catalog hold the edit.
 Checks do not establish factual correctness: maintainers still review the evidence.
@@ -101,5 +100,6 @@ um workflow validate --source-root .um/freshness --json .um/freshness/workflow.y
 
 Catalog layout is preserved. Compound entries are included in research, but their
 corrections remain manual so a proposed edit cannot erase a companion resource.
-Existing spelling or format failures hold proposals for review; they are not silently
-ignored. External pages may change cosmetically and trigger extra research.
+No additional formatting or spelling policy is imposed. Maintainers review wording
+and style against their contribution rules. External pages may change cosmetically
+and trigger extra research.

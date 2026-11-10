@@ -131,6 +131,28 @@ def patch_text(before, after):
     return ''.join(line if line.endswith('\n') else line + '\n\\ No newline at end of file\n' for line in chunks)
 
 
+def layout_blocker(entry, row, readme):
+    """Hold edits that could discard companion resources or split a nested group."""
+    if not entry.get('editable', True):
+        return 'Manual layout review required; no patch generated.'
+    original_links = re.findall(r'\[[^]]+\]\((https?://[^)]+)\)', entry['line'])
+    companions = set(original_links[1:])
+    if row['action'] == 'remove' and companions:
+        return 'Entry contains companion links; removal requires manual review.'
+    if row.get('newDescription'):
+        remaining = set(re.findall(r'\[[^]]+\]\((https?://[^)]+)\)', row['newDescription']))
+        if companions - remaining:
+            return 'Proposed wording drops companion links; manual review required.'
+    if row['action'] == 'remove' or row.get('newName'):
+        line_number = int(entry['id'])
+        following = next((line for line in readme.splitlines()[line_number:] if line.strip()), '')
+        indent = len(entry['line']) - len(entry['line'].lstrip())
+        following_indent = len(following) - len(following.lstrip())
+        if following and following_indent > indent:
+            return 'Entry has nested content; removal or rename requires manual review.'
+    return None
+
+
 def previews(data, raw, status):
     """Build one reviewable proposal per entry; never alter the checkout."""
     results = validate(data, raw)
@@ -149,7 +171,7 @@ def previews(data, raw, status):
             held += 1
             continue
         entry = selected[row['id']]
-        if not entry.get('editable', True):
+        if layout_blocker(entry, row, readme):
             held += 1
             continue
         lines = readme.splitlines(keepends=True)
@@ -227,7 +249,7 @@ def write_report(data, raw, status, output, demo=False, prepared=None, evaluatio
     proposals, note = prepared if prepared is not None else previews(data, raw, status)
     evaluations = evaluations or {}
     names = {entry['id']: entry['name'] for entry in data['entries']}
-    manual_ids = {entry['id'] for entry in data['entries'] if not entry.get('editable', True)}
+    entries_by_id = {entry['id']: entry for entry in data['entries']}
     assessments = {row['id']: row for row in results}
     proposed_ids = {p['id'] for p in proposals}
     attention = [r for r in results if r['id'] not in proposed_ids and
@@ -284,7 +306,7 @@ def write_report(data, raw, status, output, demo=False, prepared=None, evaluatio
         report += '## Needs attention\n\n'
         for row in attention:
             report += '<p><strong>' + html.escape(names[row['id']]) + '</strong>: ' + html.escape(
-                ('Manual layout review required; no patch generated. ' if row['id'] in manual_ids else '') +
+                (layout_blocker(entries_by_id[row['id']], row, data['readme']) or '') + ' ' +
                 ('; '.join(row['blockers']) or row['reason'])) + '</p>\n\n'
     if data.get('pendingEntries'):
         report += ('<details>\n<summary>Unavailable source checks</summary>\n\n<p>' +
