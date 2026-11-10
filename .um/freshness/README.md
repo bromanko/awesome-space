@@ -36,8 +36,9 @@ flowchart TD
   validateCorrections --> renderPreview[Report, checked patches and proposed baseline]
 ```
 
-No completed reviews are bundled yet. The first run researches every entry with a
-complete source snapshot; subsequent runs skip entries with saved, unchanged reviews. Unresolved findings and unavailable sources stay pending.
+The included baseline saves the completed initial reviews, so unchanged entries
+need no model calls. New or changed entries are researched; unavailable sources
+and unresolved findings remain pending.
 Only supported keep decisions with stable snapshots become completed reviews.
 After accepting a correction, the corrected entry must be reviewed before it can
 join the baseline. Adding or moving other entries does not invalidate a review.
