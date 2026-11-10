@@ -59,3 +59,8 @@ class LayoutTests(unittest.TestCase):
         self.assertIn('companion',ci.layout_blocker(entry,dict(action='update',newDescription='Replacement.'),text))
         self.assertIn('companion',ci.layout_blocker(entry,dict(action='remove',newDescription=None),text))
         self.assertIsNone(ci.layout_blocker(entry,dict(action='update',newDescription='Works with [Companion](https://companion.example).'),text))
+
+    def test_blank_line_before_nested_child_still_holds_parent_edit(self):
+        text='# Tools\n- [Parent](https://example.com) - Parent.\n\n  - [Child](https://child.example) - Child.\n'
+        for row in [dict(action='remove',newName=None,newDescription=None),dict(action='update',newName='Renamed',newDescription=None)]:
+            self.assertIn('nested',ci.layout_blocker(ci.entries(text)[0],row,text))
